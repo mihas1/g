@@ -12,7 +12,7 @@ export default {
   data: function () {
     return {
       table: {
-        url: '/initialData.json'
+        url: './initialData.json'
       }
     }
   },
