@@ -79,6 +79,18 @@
         }
       }
     },
+    watch: {
+      items() {
+        const _total = Math.ceil(this.items.length / this.perPage);
+        this.pagesTotal = _total;
+
+        if (_total === 0) {
+          this.toPage(0);
+        } else if (this.currPage > this.pagesTotal - 1) {
+          this.toPage(this.pagesTotal - 1);
+        }
+      }
+    },
     methods: {
       list() {
         return this.items.slice(this.currPage * this.perPage, (this.currPage + 1) * this.perPage);
@@ -161,18 +173,6 @@
           })
           .catch((error) => console.error(error));
       }
-    },
-    beforeUpdate() {
-      const _total = Math.ceil(this.items.length / this.perPage);
-      this.pagesTotal = _total;
-
-      if (_total === 0) {
-        this.toPage(0);
-      } else if (this.currPage > this.pagesTotal - 1) {
-        this.toPage(this.pagesTotal - 1);
-      }
-
-      this.sort(this.sorting.active, true);
     },
     created() {
       this.debouncedEdit = _.debounce(this.edit, 300);
