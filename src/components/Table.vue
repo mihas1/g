@@ -45,26 +45,27 @@
         </tr>
       </tbody>
     </table>
-    <div class="pagination">
-      <span
-        v-for="page in pagesTotal"
-        :key="page"
-        v-bind:class="(page - 1) === currPage ? 'active' : ''"
-        v-on:click="toPage(page - 1)"
-      >
-        {{page}}
-      </span>
-    </div>
+    <Pagination
+      v-bind:currPage="currPage"
+      v-bind:pagesTotal="pagesTotal"
+      v-on:change-page="toPage"
+    />
   </div>
 </template>
 
 <script>
+  import _ from 'lodash';
+  import Pagination from './Pagination.vue'
+
   export default {
     name: 'Table',
     props: {
       url: String
     },
-    data: function () {
+    components: {
+      Pagination
+    },
+    data() {
       return {
         currPage: 0,
         perPage: 10,
@@ -79,25 +80,25 @@
       }
     },
     methods: {
-      list: function () {
+      list() {
         return this.items.slice(this.currPage * this.perPage, (this.currPage + 1) * this.perPage);
       },
-      toPage: function (num) {
+      toPage(num) {
         if (!isNaN(Number(num))) {
           this.currPage = Number(num);
         }
       },
-      filter: function (key, event) {
+      filter(key, event) {
         if (event.target.value.length === 0) {
           this.items = this.full.items.slice();
         } else {
           this.items = this.full.items.filter((item) => item[key].toLowerCase().indexOf(event.target.value) !== -1);
         }
       },
-      edit: function (index, key, event) {
+      edit(index, key, event) {
         this.full.items[index][key] = event.target.value;
       },
-      sort: function (sortBy, loaded) {
+      sort(sortBy, loaded) {
         let desc = {
           a: -1,
           b: 1
@@ -148,7 +149,7 @@
           }
         });
       },
-      reload: function () {
+      reload() {
         fetch(this.url)
           .then((response) => response.json())
           .then((json) => {
@@ -161,10 +162,22 @@
           .catch((error) => console.error(error));
       }
     },
-    created: function () {
+    beforeUpdate() {
+      const _total = Math.ceil(this.items.length / this.perPage);
+      this.pagesTotal = _total;
+
+      if (_total === 0) {
+        this.toPage(0);
+      } else if (this.currPage > this.pagesTotal - 1) {
+        this.toPage(this.pagesTotal - 1);
+      }
+
+      this.sort(this.sorting.active, true);
+    },
+    created() {
       this.debouncedEdit = _.debounce(this.edit, 300);
     },
-    mounted: function () {
+    mounted() {
       const self = this;
       this.$nextTick(function () {
         self.reload();
@@ -265,15 +278,5 @@
   .asc .sortBtn::before {
     border-width: 0 6px 6px 6px;
     border-color: transparent transparent #007bff transparent;
-  }
-
-  .pagination > span {
-    display: inline-block;
-    cursor: pointer;
-    padding: 5px;
-  }
-
-  .pagination .active {
-    font-weight: bold;
   }
 </style>
