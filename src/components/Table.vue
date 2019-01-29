@@ -73,6 +73,7 @@
         items: [],
         pagesTotal: 0,
         full: {},
+        filters: {},
         sorting: {
           active: 'name',
           dir: 'asc'
@@ -101,11 +102,25 @@
         }
       },
       filter(key, event) {
-        if (event.target.value.length === 0) {
-          this.items = this.full.items.slice();
-        } else {
-          this.items = this.full.items.filter((item) => item[key].toLowerCase().indexOf(event.target.value) !== -1);
-        }
+        this.filters[key] = event.target.value;
+
+        const filters = Object.keys(this.filters);
+
+        this.items = this.full.items.filter((item) => {
+          let match = 0;
+
+          filters.forEach((filter) => {
+            if (this.filters[filter] === '') {
+              match++
+            } else if (item[filter].toLowerCase().indexOf(this.filters[filter]) !== -1) {
+              match++;
+            } else {
+              match--;
+            }
+          });
+
+          return match === filters.length;
+        });
       },
       edit(index, key, event) {
         this.full.items[index][key] = event.target.value;
